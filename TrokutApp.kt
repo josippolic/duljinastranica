@@ -26,6 +26,11 @@ class TrokutApp : JFrame() {
     private var shouldDraw = false
     private var gridCount = 10
 
+    // Oznake za strane: a,b,c
+    private var sideA = 0.0
+    private var sideB = 0.0
+    private var sideC = 0.0
+
     init {
         title = "Trokut - površina i prikaz"
         defaultCloseOperation = EXIT_ON_CLOSE
@@ -91,9 +96,21 @@ class TrokutApp : JFrame() {
             x3 = t3xField.text.toDouble()
             y3 = t3yField.text.toDouble()
 
-            val a = distance(x2, y2, x3, y3)
-            val b = distance(x1, y1, x3, y3)
-            val c = distance(x1, y1, x2, y2)
+            // Izračun stranica
+            val distA = distance(x2, y2, x3, y3)
+            val distB = distance(x1, y1, x3, y3)
+            val distC = distance(x1, y1, x2, y2)
+
+            // Sortiraj po duljini silazno i poveži s oznakama
+            val sides = listOf(
+                Pair("a", distA),
+                Pair("b", distB),
+                Pair("c", distC)
+            ).sortedByDescending { it.second }
+
+            sideC = sides[0].second  // najduža stranica
+            sideA = sides[1].second
+            sideB = sides[2].second
 
             val area = abs(
                 (x1 * (y2 - y3) +
@@ -102,7 +119,7 @@ class TrokutApp : JFrame() {
             )
 
             areaLabel.text = "Površina: %.2f".format(area)
-            sidesLabel.text = "Stranice: a=%.2f, b=%.2f, c=%.2f".format(a, b, c)
+            sidesLabel.text = "Stranice: a=%.2f, b=%.2f, c=%.2f (c je najduža)".format(sideA, sideB, sideC)
 
             shouldDraw = true
             drawPanel.repaint()
