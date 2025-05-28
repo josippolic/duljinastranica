@@ -10,12 +10,8 @@ class TrokutApp : JFrame() {
     private val t2yField = JTextField(5)
     private val t3xField = JTextField(5)
     private val t3yField = JTextField(5)
-
     private val areaLabel = JLabel("Površina: ")
-    private val aLabel = JLabel("Stranica a: ")
-    private val bLabel = JLabel("Stranica b: ")
-    private val cLabel = JLabel("Stranica c: ")
-
+    private val sidesLabel = JLabel("Stranice: ")
     private val gridSizeBox = JComboBox(
         arrayOf("10x10", "15x15", "20x20", "25x25", "30x30", "35x35", "40x40", "45x45", "50x50")
     )
@@ -31,9 +27,9 @@ class TrokutApp : JFrame() {
     private var gridCount = 10
 
     init {
-        title = "Trokut - površina i duljine stranica"
+        title = "Trokut - površina i prikaz"
         defaultCloseOperation = EXIT_ON_CLOSE
-        setSize(800, 720)
+        setSize(800, 700)
         setLocationRelativeTo(null)
         layout = BorderLayout()
 
@@ -61,7 +57,6 @@ class TrokutApp : JFrame() {
             add(izracunajBtn)
             add(resetBtn)
             add(izlazBtn)
-
             izracunajBtn.addActionListener { izracunaj() }
             resetBtn.addActionListener { reset() }
             izlazBtn.addActionListener { System.exit(0) }
@@ -69,9 +64,7 @@ class TrokutApp : JFrame() {
 
         val row4 = JPanel(FlowLayout(FlowLayout.CENTER)).apply {
             add(areaLabel)
-            add(aLabel)
-            add(bLabel)
-            add(cLabel)
+            add(sidesLabel)
         }
 
         inputPanel.add(row1)
@@ -98,20 +91,18 @@ class TrokutApp : JFrame() {
             x3 = t3xField.text.toDouble()
             y3 = t3yField.text.toDouble()
 
-            val a = sqrt((x2 - x3).pow(2) + (y2 - y3).pow(2))
-            val b = sqrt((x1 - x3).pow(2) + (y1 - y3).pow(2))
-            val c = sqrt((x1 - x2).pow(2) + (y1 - y2).pow(2))
+            val a = distance(x2, y2, x3, y3)
+            val b = distance(x1, y1, x3, y3)
+            val c = distance(x1, y1, x2, y2)
 
-            val area = 0.5 * abs(
-                x1 * (y2 - y3) +
-                x2 * (y3 - y1) +
-                x3 * (y1 - y2)
+            val area = abs(
+                (x1 * (y2 - y3) +
+                 x2 * (y3 - y1) +
+                 x3 * (y1 - y2)) / 2.0
             )
 
             areaLabel.text = "Površina: %.2f".format(area)
-            aLabel.text = "Stranica a: %.2f".format(a)
-            bLabel.text = "Stranica b: %.2f".format(b)
-            cLabel.text = "Stranica c: %.2f".format(c)
+            sidesLabel.text = "Stranice: a=%.2f, b=%.2f, c=%.2f".format(a, b, c)
 
             shouldDraw = true
             drawPanel.repaint()
@@ -128,13 +119,15 @@ class TrokutApp : JFrame() {
         t3xField.text = ""
         t3yField.text = ""
         areaLabel.text = "Površina: "
-        aLabel.text = "Stranica a: "
-        bLabel.text = "Stranica b: "
-        cLabel.text = "Stranica c: "
+        sidesLabel.text = "Stranice: "
         gridCount = 10
         gridSizeBox.selectedItem = "10x10"
         shouldDraw = false
         drawPanel.repaint()
+    }
+
+    private fun distance(x1: Double, y1: Double, x2: Double, y2: Double): Double {
+        return sqrt((x2 - x1).pow(2) + (y2 - y1).pow(2))
     }
 
     inner class DrawPanel : JPanel() {
