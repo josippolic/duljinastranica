@@ -12,6 +12,7 @@ class TrokutApp : JFrame() {
     private val t3yField = JTextField(5)
     private val areaLabel = JLabel("Površina: ")
     private val sidesLabel = JLabel("Stranice: ")
+    private val anglesLabel = JLabel("Kutevi: ")
     private val gridSizeBox = JComboBox(
         arrayOf("10x10", "15x15", "20x20", "25x25", "30x30", "35x35", "40x40", "45x45", "50x50")
     )
@@ -26,19 +27,21 @@ class TrokutApp : JFrame() {
     private var shouldDraw = false
     private var gridCount = 10
 
-    // Oznake za strane: a,b,c
     private var sideA = 0.0
     private var sideB = 0.0
     private var sideC = 0.0
+    private var angleA = 0.0
+    private var angleB = 0.0
+    private var angleC = 0.0
 
     init {
-        title = "Trokut - površina i prikaz"
+        title = "Trokut - površina, stranice i kutovi"
         defaultCloseOperation = EXIT_ON_CLOSE
-        setSize(800, 700)
+        setSize(800, 720)
         setLocationRelativeTo(null)
         layout = BorderLayout()
 
-        val inputPanel = JPanel(GridLayout(4, 1))
+        val inputPanel = JPanel(GridLayout(5, 1))
 
         val row1 = JPanel(FlowLayout(FlowLayout.CENTER)).apply {
             add(JLabel("T1x:")); add(t1xField)
@@ -72,10 +75,15 @@ class TrokutApp : JFrame() {
             add(sidesLabel)
         }
 
+        val row5 = JPanel(FlowLayout(FlowLayout.CENTER)).apply {
+            add(anglesLabel)
+        }
+
         inputPanel.add(row1)
         inputPanel.add(row2)
         inputPanel.add(row3)
         inputPanel.add(row4)
+        inputPanel.add(row5)
 
         add(inputPanel, BorderLayout.NORTH)
         add(drawPanel, BorderLayout.CENTER)
@@ -96,19 +104,17 @@ class TrokutApp : JFrame() {
             x3 = t3xField.text.toDouble()
             y3 = t3yField.text.toDouble()
 
-            // Izračun stranica
             val distA = distance(x2, y2, x3, y3)
             val distB = distance(x1, y1, x3, y3)
             val distC = distance(x1, y1, x2, y2)
 
-            // Sortiraj po duljini silazno i poveži s oznakama
             val sides = listOf(
                 Pair("a", distA),
                 Pair("b", distB),
                 Pair("c", distC)
             ).sortedByDescending { it.second }
 
-            sideC = sides[0].second  // najduža stranica
+            sideC = sides[0].second
             sideA = sides[1].second
             sideB = sides[2].second
 
@@ -118,8 +124,14 @@ class TrokutApp : JFrame() {
                  x3 * (y1 - y2)) / 2.0
             )
 
+            // Kosinus poučak
+            angleA = acos(((sideB.pow(2) + sideC.pow(2) - sideA.pow(2)) / (2 * sideB * sideC))).toDegrees()
+            angleB = acos(((sideA.pow(2) + sideC.pow(2) - sideB.pow(2)) / (2 * sideA * sideC))).toDegrees()
+            angleC = 180.0 - angleA - angleB
+
             areaLabel.text = "Površina: %.2f".format(area)
             sidesLabel.text = "Stranice: a=%.2f, b=%.2f, c=%.2f (c je najduža)".format(sideA, sideB, sideC)
+            anglesLabel.text = "Kutevi: ∠A=%.1f°, ∠B=%.1f°, ∠C=%.1f°".format(angleA, angleB, angleC)
 
             shouldDraw = true
             drawPanel.repaint()
@@ -137,6 +149,7 @@ class TrokutApp : JFrame() {
         t3yField.text = ""
         areaLabel.text = "Površina: "
         sidesLabel.text = "Stranice: "
+        anglesLabel.text = "Kutevi: "
         gridCount = 10
         gridSizeBox.selectedItem = "10x10"
         shouldDraw = false
@@ -146,6 +159,8 @@ class TrokutApp : JFrame() {
     private fun distance(x1: Double, y1: Double, x2: Double, y2: Double): Double {
         return sqrt((x2 - x1).pow(2) + (y2 - y1).pow(2))
     }
+
+    private fun Double.toDegrees(): Double = this * (180 / Math.PI)
 
     inner class DrawPanel : JPanel() {
         override fun paintComponent(g: Graphics) {
@@ -157,7 +172,6 @@ class TrokutApp : JFrame() {
             val offsetY = height / 2
             val scale = min(width, height) / (2 * gridCount)
 
-            // Mreža
             g2.color = Color.LIGHT_GRAY
             for (i in -gridCount..gridCount) {
                 val x = offsetX + i * scale
@@ -166,7 +180,6 @@ class TrokutApp : JFrame() {
                 g2.drawLine(0, y, width, y)
             }
 
-            // Osi
             g2.color = Color.BLACK
             g2.stroke = BasicStroke(2f)
             g2.drawLine(0, offsetY, width, offsetY)
@@ -193,6 +206,8 @@ class TrokutApp : JFrame() {
                 g2.drawString("T1(${trim(x1)},${trim(y1)})", x1Pix + 10, y1Pix + 15)
                 g2.drawString("T2(${trim(x2)},${trim(y2)})", x2Pix + 10, y2Pix + 15)
                 g2.drawString("T3(${trim(x3)},${trim(y3)})", x3Pix + 10, y3Pix + 15)
+
+                // Kutevi se više ne crtaju ovdje!
             }
         }
 
